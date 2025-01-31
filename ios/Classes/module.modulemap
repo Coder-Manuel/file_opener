@@ -3,4 +3,7 @@ framework module file_opener {
   
   export *
   module * { export * }
+  
+  link framework "Flutter"
+  link framework "UIKit"
 }

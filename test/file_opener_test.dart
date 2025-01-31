@@ -22,10 +22,9 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    FileOpener fileOpenerPlugin = FileOpener();
     MockFileOpenerPlatform fakePlatform = MockFileOpenerPlatform();
     FileOpenerPlatform.instance = fakePlatform;
 
-    expect(await fileOpenerPlugin.getPlatformVersion(), '42');
+    expect(await FileOpener.getPlatformVersion(), '42');
   });
 }
