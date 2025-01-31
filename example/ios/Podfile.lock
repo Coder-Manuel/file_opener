@@ -19,7 +19,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  file_opener: 8c1a319a3b6ddd1571258e35d236806eec717c2b
+  file_opener: c99b8c4a41f752e717c76e5784bffd3db3b546b5
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 

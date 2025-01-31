@@ -27,6 +27,7 @@ A Flutter plugin for opening files with native apps.
   s.swift_version = '5.0'
   s.preserve_paths = 'Classes/module.modulemap'
   s.module_map = 'Classes/module.modulemap'
+  s.public_header_files = 'Classes/**/*.h'
 
   # If your plugin requires a privacy manifest, for example if it uses any
   # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your

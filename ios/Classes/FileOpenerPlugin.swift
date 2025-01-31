@@ -21,7 +21,7 @@ public class FileOpenerPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+  private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
     guard let arguments = call.arguments as? [String: Any],
           let filePath = arguments["filePath"] as? String
     else {
