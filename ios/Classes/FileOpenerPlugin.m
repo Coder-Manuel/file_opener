@@ -5,8 +5,10 @@
 #import "file_opener-Swift.h"
 #endif
 
-@implementation FileOpenerPlugin
+@implementation FileOpenerPluginObjC
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   [SwiftFileOpenerPlugin registerWithRegistrar:registrar];
 }
+
 @end
