@@ -25,6 +25,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "file_opener")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
+        Log.d("FileOpener", "Plugin attached to engine")
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -33,7 +34,10 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
                 Log.d("FileOpener", "GetPlatform Version Called")
                 return result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
-            "openFile" -> openFile(call, result)
+            "openFile" -> {
+                Log.d("FileOpener", "Open File Called")
+                openFile(call, result)
+            }
             else -> result.notImplemented()
         }
     }
@@ -49,7 +53,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
             Log.d("FileOpener", "Attempting to open file: $filePath")
 
             if (filePath == null) {
-                result.error("INVALID_PATH", "File path cannot be null", null)
+                result.error("INVALID_PATH", "File path cannot be null", call.arguments)
                 return
             }
 
