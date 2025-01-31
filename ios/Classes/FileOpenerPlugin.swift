@@ -119,8 +119,8 @@ public class SwiftFileOpenerPlugin: NSObject, FlutterPlugin, UIDocumentInteracti
   }
 }
 
-extension SwiftFileOpenerPlugin: UIDocumentInteractionControllerDelegate {
-  public func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
+public extension SwiftFileOpenerPlugin {
+  func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
     return topViewController()!
   }
 }
