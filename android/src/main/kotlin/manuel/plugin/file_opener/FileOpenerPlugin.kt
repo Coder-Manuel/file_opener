@@ -29,7 +29,10 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
+            "getPlatformVersion" -> {
+                Log.d("FileOpener", "GetPlatform Version Called")
+                return result.success("Android ${android.os.Build.VERSION.RELEASE}")
+            }
             "openFile" -> openFile(call, result)
             else -> result.notImplemented()
         }
