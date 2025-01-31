@@ -4,7 +4,7 @@ version: 0.0.1
 homepage: https://github.com/Coder-Manuel/file_opener
 
 environment:
-  sdk: ^3.5.3
+  sdk: ^3.5.0
   flutter: ">=3.3.0"
 
 dependencies:
