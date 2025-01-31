@@ -1,0 +1,28 @@
+PODS:
+  - file_opener (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - file_opener (from `.symlinks/plugins/file_opener/ios`)
+  - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+EXTERNAL SOURCES:
+  file_opener:
+    :path: ".symlinks/plugins/file_opener/ios"
+  Flutter:
+    :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  file_opener: 8c1a319a3b6ddd1571258e35d236806eec717c2b
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+
+PODFILE CHECKSUM: 6b9eb94e9f98a329f2ef624b852a6e42d090af2b
+
+COCOAPODS: 1.16.2

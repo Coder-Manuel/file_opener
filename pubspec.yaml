@@ -1,7 +1,7 @@
 name: file_opener
 description: "A simple file opener plugin without unnecesary permissions."
 version: 0.0.1
-homepage: https://github.com/Coder-Manuel
+homepage: https://github.com/Coder-Manuel/file_opener
 
 environment:
   sdk: ^3.5.3

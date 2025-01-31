@@ -1,0 +1,6 @@
+framework module file_opener {
+  umbrella header "FileOpenerPlugin.h"
+  
+  export *
+  module * { export * }
+}
