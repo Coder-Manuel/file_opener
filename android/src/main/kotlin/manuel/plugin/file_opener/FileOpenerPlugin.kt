@@ -41,14 +41,16 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun openFile(call: MethodCall, result: Result) {
         try {
+            Log.d("FileOpener", "Arguments: ${call.argument}")
             val filePath = call.argument<String>("path")
+            Log.d("FileOpener", "Attempting to open file: $filePath")
+
             if (filePath == null) {
                 result.error("INVALID_PATH", "File path cannot be null", null)
                 return
             }
 
             val file = File(filePath)
-            Log.d("FileOpener", "Attempting to open file: $filePath")
 
             // Check if file exists and is readable
             if (!file.exists() || !file.canRead()) {
@@ -56,31 +58,40 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
                 return
             }
 
-            val uri = try {
-                FileProvider.getUriForFile(
-                    context, "${context.packageName}.fileprovider", file
-                )
-            } catch (e: IllegalArgumentException) {
-                // If the specific file location is not in the configured paths
-                Log.e("FileOpener", "FileProvider error: ${e.message}")
+            val uri =
+                    try {
+                        FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                file
+                        )
+                    } catch (e: IllegalArgumentException) {
+                        // If the specific file location is not in the configured paths
+                        Log.e("FileOpener", "FileProvider error: ${e.message}")
 
-                // Copy the file to a known directory
-                val destFile = File(context.cacheDir, file.name)
-                file.copyTo(destFile, overwrite = true)
+                        // Copy the file to a known directory
+                        val destFile = File(context.cacheDir, file.name)
+                        file.copyTo(destFile, overwrite = true)
 
-                FileProvider.getUriForFile(
-                    context, "${context.packageName}.fileprovider", destFile
-                )
-            }
+                        FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                destFile
+                        )
+                    }
 
             // Get the file MIME type
             val mimeType = getMimeType(file)
 
             // Create the intent
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, mimeType)
-                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
+            val intent =
+                    Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, mimeType)
+                        flags =
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
 
             // Start the intent
             context.startActivity(intent)
