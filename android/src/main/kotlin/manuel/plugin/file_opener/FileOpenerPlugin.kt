@@ -44,7 +44,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun openFile(call: MethodCall, result: Result) {
         try {
-            Log.d("FileOpener", "Arguments: ${call.argument()}")
+            Log.d("FileOpener", "Arguments: ${call.arguments}")
             val filePath = call.argument<String>("path")
             Log.d("FileOpener", "Attempting to open file: $filePath")
 
