@@ -21,13 +21,17 @@ public class FileOpenerPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
+  private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let arguments = call.arguments as? [String: Any],
           let filePath = arguments["filePath"] as? String
     else {
-      result(FlutterError(code: "INVALID_ARGUMENTS",
-                          message: "File path is required",
-                          details: nil))
+      result(
+        FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "File path is required",
+          details: nil
+        )
+      )
       return
     }
 
@@ -35,9 +39,14 @@ public class FileOpenerPlugin: NSObject, FlutterPlugin {
 
     // Ensure file exists
     guard FileManager.default.fileExists(atPath: fileURL.path) else {
-      throw NSError(domain: "FileOpenerPlugin",
-                    code: 404,
-                    userInfo: [NSLocalizedDescriptionKey: "File not found"])
+      result(
+        FlutterError(
+          code: "FILE_NOT_FOUND",
+          message: "File not found at path: \(filePath)",
+          details: nil
+        )
+      )
+      return
     }
 
     // Determine document interaction controller
@@ -47,32 +56,42 @@ public class FileOpenerPlugin: NSObject, FlutterPlugin {
     // Attempt to present the document
     DispatchQueue.main.async {
       guard let topViewController = self.topViewController() else {
-        result(FlutterError(code: "NO_VIEW_CONTROLLER",
-                            message: "Could not find top view controller",
-                            details: nil))
+        result(
+          FlutterError(
+            code: "NO_VIEW_CONTROLLER",
+            message: "Could not find top view controller",
+            details: nil
+          )
+        )
         return
       }
 
-      let presentSuccess = documentController.presentOptionsMenu(
+      if documentController.presentOptionsMenu(
         from: topViewController.view.bounds,
         in: topViewController.view,
         animated: true
-      )
-
-      if !presentSuccess {
-        // Fallback method if options menu fails
-        let openSuccess = documentController.presentOpenInMenu(
-          from: topViewController.view.bounds,
-          in: topViewController.view,
-          animated: true
-        )
-
-        if !openSuccess {
-          result(FlutterError(code: "OPEN_FAILED",
-                              message: "Could not open file with any app",
-                              details: nil))
-        }
+      ) {
+        result(nil)
+        return
       }
+
+      // Fallback method if options menu fails
+      if documentController.presentOpenInMenu(
+        from: topViewController.view.bounds,
+        in: topViewController.view,
+        animated: true
+      ) {
+        result(nil)
+        return
+      }
+
+      result(
+        FlutterError(
+          code: "OPEN_FAILED",
+          message: "Could not open file with any app",
+          details: nil
+        )
+      )
     }
 
     result(nil)
