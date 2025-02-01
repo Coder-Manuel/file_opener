@@ -7,6 +7,10 @@ import UniformTypeIdentifiers
   private var documentController: UIDocumentInteractionController?
   private var pendingResult: FlutterResult?
 
+  private var rootViewController: UIViewController? {
+    return UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController
+  }
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "file_opener", binaryMessenger: registrar.messenger())
     let instance = SwiftFileOpenerPlugin()
@@ -28,100 +32,57 @@ import UniformTypeIdentifiers
     guard let arguments = call.arguments as? [String: Any],
           let filePath = arguments["path"] as? String
     else {
-      result(
-        FlutterError(
-          code: "INVALID_ARGUMENTS",
-          message: "File path is required",
-          details: nil
-        )
-      )
+      result(FlutterError(code: "INVALID_ARGUMENTS", message: "File path is required", details: nil))
       return
     }
 
     let fileURL = URL(fileURLWithPath: filePath)
 
-    // Ensure file exists
     guard FileManager.default.fileExists(atPath: fileURL.path) else {
-      result(
-        FlutterError(
-          code: "FILE_NOT_FOUND",
-          message: "File not found at path: \(filePath)",
-          details: nil
-        )
-      )
+      result(FlutterError(code: "FILE_NOT_FOUND", message: "File not found at path: \(filePath)", details: nil))
       return
     }
 
-    // Store the result callback
     pendingResult = result
 
-    // Create and retain the document controller
-    documentController = UIDocumentInteractionController(url: fileURL)
-    documentController?.delegate = self
-
-    // Attempt to present the document
     DispatchQueue.main.async { [weak self] in
-      guard let self = self,
-            let documentController = self.documentController,
-            let topViewController = self.topViewController()
-      else {
-        result(
-          FlutterError(
-            code: "NO_VIEW_CONTROLLER",
-            message: "Could not find top view controller",
-            details: nil
-          )
-        )
+      guard let strongSelf = self, let rootVC = strongSelf.topViewController() else {
+        result(FlutterError(code: "NO_VIEW_CONTROLLER", message: "Could not find view controller", details: nil))
         return
       }
 
-      // Try preview first
-      if documentController.presentPreview(animated: true) {
-        return
+      strongSelf.documentController = UIDocumentInteractionController(url: fileURL)
+      strongSelf.documentController?.delegate = strongSelf
+
+      if #available(iOS 14.0, *) {
+        strongSelf.documentController?.uti = UTType(filenameExtension: fileURL.pathExtension)?.identifier ?? "public.data"
+      } else {
+        strongSelf.documentController?.uti = "public.data"
       }
 
-      // Try open in menu next
-      if documentController.presentOpenInMenu(
-        from: topViewController.view.bounds,
-        in: topViewController.view,
-        animated: true
-      ) {
-        return
-      }
+      let rect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
 
-      // Finally try options menu
-      if documentController.presentOptionsMenu(
-        from: topViewController.view.bounds,
-        in: topViewController.view,
-        animated: true
-      ) {
-        return
+      if !(strongSelf.documentController?.presentOptionsMenu(from: rect, in: rootVC.view, animated: true) ?? false) {
+        result(FlutterError(code: "PRESENTATION_ERROR", message: "Could not present file options", details: nil))
+        strongSelf.cleanup()
       }
-
-      self.pendingResult?(
-        FlutterError(
-          code: "OPEN_FAILED",
-          message: "Could not open file with any app",
-          details: nil
-        )
-      )
-      self.pendingResult = nil
-      self.documentController = nil
     }
   }
 
-  // Helper method to find the top view controller
+  private func cleanup() {
+    documentController = nil
+    pendingResult = nil
+  }
+
   private func topViewController(controller: UIViewController? = nil) -> UIViewController? {
-    let controller = controller ?? UIApplication.shared.keyWindow?.rootViewController
+    let controller = controller ?? UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController
 
     if let navigationController = controller as? UINavigationController {
       return topViewController(controller: navigationController.visibleViewController)
     }
 
-    if let tabController = controller as? UITabBarController {
-      if let selected = tabController.selectedViewController {
-        return topViewController(controller: selected)
-      }
+    if let tabController = controller as? UITabBarController, let selected = tabController.selectedViewController {
+      return topViewController(controller: selected)
     }
 
     if let presented = controller?.presentedViewController {
@@ -132,23 +93,29 @@ import UniformTypeIdentifiers
   }
 }
 
+// MARK: - UIDocumentInteractionControllerDelegate
+
 public extension SwiftFileOpenerPlugin {
   func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
-    return topViewController()!
-  }
-
-  func documentInteractionControllerDidEndPreview(_: UIDocumentInteractionController) {
-    pendingResult?(nil)
-    pendingResult = nil
-    documentController = nil
+    return topViewController() ?? UIViewController()
   }
 
   func documentInteractionController(_: UIDocumentInteractionController, willBeginSendingToApplication _: String?) {
     pendingResult?(nil)
-    pendingResult = nil
+    cleanup()
+  }
+
+  func documentInteractionControllerDidDismissOptionsMenu(_: UIDocumentInteractionController) {
+    pendingResult?(nil)
+    cleanup()
+  }
+
+  func documentInteractionControllerDidDismissOpenInMenu(_: UIDocumentInteractionController) {
+    pendingResult?(nil)
+    cleanup()
   }
 
   func documentInteractionController(_: UIDocumentInteractionController, didEndSendingToApplication _: String?) {
-    documentController = nil
+    cleanup()
   }
 }
