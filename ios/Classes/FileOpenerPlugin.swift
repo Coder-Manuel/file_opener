@@ -3,7 +3,7 @@ import MobileCoreServices
 import UIKit
 import UniformTypeIdentifiers
 
-public class SwiftFileOpenerPlugin: NSObject, FlutterPlugin, UIDocumentInteractionControllerDelegate {
+@objc public class SwiftFileOpenerPlugin: NSObject, FlutterPlugin, UIDocumentInteractionControllerDelegate {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "file_opener", binaryMessenger: registrar.messenger())
     let instance = SwiftFileOpenerPlugin()

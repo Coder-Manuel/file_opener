@@ -1,3 +1,4 @@
 #import <Flutter/Flutter.h>
-@interface FileOpenerPluginObjC : NSObject<FlutterPlugin>
+
+@interface FileOpenerPlugin : NSObject<FlutterPlugin>
 @end

@@ -19,7 +19,8 @@ A Flutter plugin for opening files with native apps.
   s.pod_target_xcconfig = { 
     'DEFINES_MODULE' => 'YES',
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386',
-    'FRAMEWORK_SEARCH_PATHS' => '$(PODS_ROOT)/Flutter' 
+    'FRAMEWORK_SEARCH_PATHS' => '$(PODS_ROOT)/Flutter',
+    'SWIFT_OBJC_BRIDGING_HEADER' => '${PODS_TARGET_SRCROOT}/Classes/file_opener-Bridging-Header.h'
   }
 
   # Flutter.framework does not contain a i386 slice.
