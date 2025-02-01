@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 @objc public class SwiftFileOpenerPlugin: NSObject, FlutterPlugin, UIDocumentInteractionControllerDelegate {
   private var documentController: UIDocumentInteractionController?
+  private var pendingResult: FlutterResult?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "file_opener", binaryMessenger: registrar.messenger())
@@ -51,6 +52,9 @@ import UniformTypeIdentifiers
       return
     }
 
+    // Store the result callback
+    pendingResult = result
+
     // Create and retain the document controller
     documentController = UIDocumentInteractionController(url: fileURL)
     documentController?.delegate = self
@@ -73,7 +77,6 @@ import UniformTypeIdentifiers
 
       // Try preview first
       if documentController.presentPreview(animated: true) {
-        result(nil)
         return
       }
 
@@ -83,7 +86,6 @@ import UniformTypeIdentifiers
         in: topViewController.view,
         animated: true
       ) {
-        result(nil)
         return
       }
 
@@ -93,17 +95,18 @@ import UniformTypeIdentifiers
         in: topViewController.view,
         animated: true
       ) {
-        result(nil)
         return
       }
 
-      result(
+      self.pendingResult?(
         FlutterError(
           code: "OPEN_FAILED",
           message: "Could not open file with any app",
           details: nil
         )
       )
+      self.pendingResult = nil
+      self.documentController = nil
     }
   }
 
@@ -135,7 +138,17 @@ public extension SwiftFileOpenerPlugin {
   }
 
   func documentInteractionControllerDidEndPreview(_: UIDocumentInteractionController) {
-    // Clean up the document controller when preview ends
+    pendingResult?(nil)
+    pendingResult = nil
+    documentController = nil
+  }
+
+  func documentInteractionController(_: UIDocumentInteractionController, willBeginSendingToApplication _: String?) {
+    pendingResult?(nil)
+    pendingResult = nil
+  }
+
+  func documentInteractionController(_: UIDocumentInteractionController, didEndSendingToApplication _: String?) {
     documentController = nil
   }
 }
