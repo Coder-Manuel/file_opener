@@ -23,7 +23,7 @@ import UniformTypeIdentifiers
 
   private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let arguments = call.arguments as? [String: Any],
-          let filePath = arguments["filePath"] as? String
+          let filePath = arguments["path"] as? String
     else {
       result(
         FlutterError(
