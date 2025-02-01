@@ -4,6 +4,8 @@ import UIKit
 import UniformTypeIdentifiers
 
 @objc public class SwiftFileOpenerPlugin: NSObject, FlutterPlugin, UIDocumentInteractionControllerDelegate {
+  private var documentController: UIDocumentInteractionController?
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "file_opener", binaryMessenger: registrar.messenger())
     let instance = SwiftFileOpenerPlugin()
@@ -49,13 +51,16 @@ import UniformTypeIdentifiers
       return
     }
 
-    // Determine document interaction controller
-    let documentController = UIDocumentInteractionController(url: fileURL)
-    documentController.delegate = self
+    // Create and retain the document controller
+    documentController = UIDocumentInteractionController(url: fileURL)
+    documentController?.delegate = self
 
     // Attempt to present the document
-    DispatchQueue.main.async {
-      guard let topViewController = self.topViewController() else {
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self,
+            let documentController = self.documentController,
+            let topViewController = self.topViewController()
+      else {
         result(
           FlutterError(
             code: "NO_VIEW_CONTROLLER",
@@ -66,6 +71,13 @@ import UniformTypeIdentifiers
         return
       }
 
+      // Try preview first
+      if documentController.presentPreview(animated: true) {
+        result(nil)
+        return
+      }
+
+      // Try open in menu next
       if documentController.presentOpenInMenu(
         from: topViewController.view.bounds,
         in: topViewController.view,
@@ -75,7 +87,7 @@ import UniformTypeIdentifiers
         return
       }
 
-      // Fallback method if open menu fails
+      // Finally try options menu
       if documentController.presentOptionsMenu(
         from: topViewController.view.bounds,
         in: topViewController.view,
@@ -93,8 +105,6 @@ import UniformTypeIdentifiers
         )
       )
     }
-
-    result(nil)
   }
 
   // Helper method to find the top view controller
@@ -122,5 +132,10 @@ import UniformTypeIdentifiers
 public extension SwiftFileOpenerPlugin {
   func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
     return topViewController()!
+  }
+
+  func documentInteractionControllerDidEndPreview(_: UIDocumentInteractionController) {
+    // Clean up the document controller when preview ends
+    documentController = nil
   }
 }
