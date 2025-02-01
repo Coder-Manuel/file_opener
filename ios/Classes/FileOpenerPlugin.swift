@@ -66,7 +66,7 @@ import UniformTypeIdentifiers
         return
       }
 
-      if documentController.presentOptionsMenu(
+      if documentController.presentOpenInMenu(
         from: topViewController.view.bounds,
         in: topViewController.view,
         animated: true
@@ -75,8 +75,8 @@ import UniformTypeIdentifiers
         return
       }
 
-      // Fallback method if options menu fails
-      if documentController.presentOpenInMenu(
+      // Fallback method if open menu fails
+      if documentController.presentOptionsMenu(
         from: topViewController.view.bounds,
         in: topViewController.view,
         animated: true
