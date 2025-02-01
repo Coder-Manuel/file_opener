@@ -7,10 +7,6 @@ import UniformTypeIdentifiers
   private var documentController: UIDocumentInteractionController?
   private var pendingResult: FlutterResult?
 
-  private var rootViewController: UIViewController? {
-    return UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController
-  }
-
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "file_opener", binaryMessenger: registrar.messenger())
     let instance = SwiftFileOpenerPlugin()
@@ -29,53 +25,92 @@ import UniformTypeIdentifiers
   }
 
   private func openFile(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    // Extract the file path from the arguments.
     guard let arguments = call.arguments as? [String: Any],
           let filePath = arguments["path"] as? String
     else {
-      result(FlutterError(code: "INVALID_ARGUMENTS", message: "File path is required", details: nil))
+      result(FlutterError(code: "INVALID_ARGUMENTS",
+                          message: "File path is required",
+                          details: nil))
       return
     }
 
     let fileURL = URL(fileURLWithPath: filePath)
 
+    // Check that the file exists.
     guard FileManager.default.fileExists(atPath: fileURL.path) else {
-      result(FlutterError(code: "FILE_NOT_FOUND", message: "File not found at path: \(filePath)", details: nil))
+      result(FlutterError(code: "FILE_NOT_FOUND",
+                          message: "File not found at path: \(filePath)",
+                          details: nil))
       return
     }
 
     pendingResult = result
 
     DispatchQueue.main.async { [weak self] in
-      guard let strongSelf = self, let rootVC = strongSelf.topViewController() else {
-        result(FlutterError(code: "NO_VIEW_CONTROLLER", message: "Could not find view controller", details: nil))
+      guard let self = self,
+            let rootVC = self.topViewController()
+      else {
+        result(FlutterError(code: "NO_VIEW_CONTROLLER",
+                            message: "Could not find view controller",
+                            details: nil))
         return
       }
 
-      strongSelf.documentController = UIDocumentInteractionController(url: fileURL)
-      strongSelf.documentController?.delegate = strongSelf
+      // Create and configure the UIDocumentInteractionController.
+      self.documentController = UIDocumentInteractionController(url: fileURL)
+      self.documentController?.delegate = self
 
+      // Set the UTI for the file based on its extension.
+      let fileExtension = fileURL.pathExtension
       if #available(iOS 14.0, *) {
-        strongSelf.documentController?.uti = UTType(filenameExtension: fileURL.pathExtension)?.identifier ?? "public.data"
+        if let utType = UTType(filenameExtension: fileExtension) {
+          self.documentController?.uti = utType.identifier
+        }
       } else {
-        strongSelf.documentController?.uti = "public.data"
+        if let utiUnmanaged = UTTypeCreatePreferredIdentifierForTag(
+          kUTTagClassFilenameExtension,
+          fileExtension as CFString,
+          nil
+        ) {
+          let uti = utiUnmanaged.takeRetainedValue() as String
+          self.documentController?.uti = uti
+        }
       }
 
-      let rect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-
-      if !(strongSelf.documentController?.presentOptionsMenu(from: rect, in: rootVC.view, animated: true) ?? false) {
-        result(FlutterError(code: "PRESENTATION_ERROR", message: "Could not present file options", details: nil))
-        strongSelf.cleanup()
+      // Try to present a preview. If the file cannot be previewed, fall back to the options menu.
+      if self.documentController!.presentPreview(animated: true) == false {
+        self.documentController?.presentOptionsMenu(
+          from: rootVC.view.bounds,
+          in: rootVC.view,
+          animated: true
+        )
       }
     }
   }
 
+  // MARK: - UIDocumentInteractionControllerDelegate
+
+  public func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
+    // Return the top-most view controller.
+    return topViewController() ?? UIApplication.shared.keyWindow!.rootViewController!
+  }
+
+  public func documentInteractionControllerDidEndPreview(_: UIDocumentInteractionController) {
+    // When the preview is dismissed, return success.
+    pendingResult?(true)
+    cleanup()
+  }
+
+  // Call this when you’re done with the document controller.
   private func cleanup() {
     documentController = nil
     pendingResult = nil
   }
 
+  // Helper method to find the top view controller.
   private func topViewController(controller: UIViewController? = nil) -> UIViewController? {
-    let controller = controller ?? UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController
+    let controller = controller ?? UIApplication.shared.keyWindow?.rootViewController
 
     if let navigationController = controller as? UINavigationController {
       return topViewController(controller: navigationController.visibleViewController)
@@ -90,32 +125,5 @@ import UniformTypeIdentifiers
     }
 
     return controller
-  }
-}
-
-// MARK: - UIDocumentInteractionControllerDelegate
-
-public extension SwiftFileOpenerPlugin {
-  func documentInteractionControllerViewControllerForPreview(_: UIDocumentInteractionController) -> UIViewController {
-    return topViewController() ?? UIViewController()
-  }
-
-  func documentInteractionController(_: UIDocumentInteractionController, willBeginSendingToApplication _: String?) {
-    pendingResult?(nil)
-    cleanup()
-  }
-
-  func documentInteractionControllerDidDismissOptionsMenu(_: UIDocumentInteractionController) {
-    pendingResult?(nil)
-    cleanup()
-  }
-
-  func documentInteractionControllerDidDismissOpenInMenu(_: UIDocumentInteractionController) {
-    pendingResult?(nil)
-    cleanup()
-  }
-
-  func documentInteractionController(_: UIDocumentInteractionController, didEndSendingToApplication _: String?) {
-    cleanup()
   }
 }
