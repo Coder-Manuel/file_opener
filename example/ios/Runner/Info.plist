@@ -34,14 +34,6 @@
 	<string>Main</string>
 	<key>UIStatusBarStyle</key>
 	<string></string>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	<key>UISupportsDocumentBrowser</key>
-	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>We need access to your documents to save and share files.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

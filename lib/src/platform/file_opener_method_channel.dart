@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:file_opener/src/models/open_result_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -15,7 +18,17 @@ class MethodChannelFileOpener extends FileOpenerPlatform {
   }
 
   @override
-  Future<void> openFile(String path) {
-    return methodChannel.invokeMethod('openFile', {'path': path});
+  Future<OpenResult> openFile(
+    String path, {
+    String? type,
+    String? uti,
+  }) async {
+    final result = await methodChannel.invokeMethod('openFile', {
+      'path': path,
+      "type": type,
+      "uti": uti,
+    });
+    final resultMap = json.decode(result) as Map<String, dynamic>;
+    return OpenResult.fromJson(resultMap);
   }
 }

@@ -71,7 +71,7 @@ class _MyAppState extends State<MyApp> {
                   directory = await getDownloadsDirectory();
                 }
 
-                String path = '${directory!.path}/Agreement.txt';
+                String path = '${directory!.path}/lorem.txt';
 
                 final file = await File(path).writeAsString(
                   '''What is Lorem Ipsum?
@@ -80,7 +80,7 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 
                 await FileOpener.openFile(file.path);
               },
-              child: Text('TAP HERE'),
+              child: const Text('Open File'),
             ),
           ],
         ),

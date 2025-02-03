@@ -1,3 +1,4 @@
+import 'package:file_opener/src/models/open_result_model.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'file_opener_method_channel.dart';
@@ -27,7 +28,7 @@ abstract class FileOpenerPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<void> openFile(String path) {
+  Future<OpenResult> openFile(String path) {
     throw UnimplementedError('openFile() has not been implemented.');
   }
 }

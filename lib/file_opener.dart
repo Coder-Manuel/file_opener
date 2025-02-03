@@ -1,11 +1,3 @@
-import 'file_opener_platform_interface.dart';
+library file_opener;
 
-class FileOpener {
-  static Future<String?> getPlatformVersion() {
-    return FileOpenerPlatform.instance.getPlatformVersion();
-  }
-
-  static Future<void> openFile(String path) {
-    return FileOpenerPlatform.instance.openFile(path);
-  }
-}
+export 'src/file_opener.dart';
