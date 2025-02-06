@@ -86,21 +86,20 @@ TopViewControllerForViewController(UIViewController *viewController) {
   if ([call.method isEqualToString:@"getPlatformVersion"]) {
     // Return the iOS version string
     NSString *systemVersion = [[UIDevice currentDevice] systemVersion];
-    NSString *versionString = [@"iOS " stringByAppendingString:systemVersion];
-    result(versionString);
+    NSDictionary *dict = @{
+      @"platform" : @"iOS",
+      @"version" : systemVersion
+    };
+    result(dict);
   } else if ([call.method isEqualToString:@"openFile"]) {
     _result = result;
     NSString *msg = call.arguments[@"path"];
     if (msg == nil) {
-      NSDictionary *dict =
-          @{@"message" : @"the file path cannot be null", @"type" : @-4};
-      NSData *jsonData =
-          [NSJSONSerialization dataWithJSONObject:dict
-                                          options:NSJSONWritingPrettyPrinted
-                                            error:nil];
-      NSString *json = [[NSString alloc] initWithData:jsonData
-                                             encoding:NSUTF8StringEncoding];
-      result(json);
+      NSDictionary *dict = @{
+        @"type" : @4,
+        @"message" : @"INVALID_PATH: File path cannot be null"
+      };
+      result(dict);
       return;
     }
     NSFileManager *fileManager = [NSFileManager defaultManager];
@@ -130,26 +129,18 @@ TopViewControllerForViewController(UIViewController *viewController) {
                                animated:YES];
         }
       } @catch (NSException *exception) {
-        NSDictionary *dict =
-            @{@"message" : @"File opened incorrectly.", @"type" : @-4};
-        NSData *jsonData =
-            [NSJSONSerialization dataWithJSONObject:dict
-                                            options:NSJSONWritingPrettyPrinted
-                                              error:nil];
-        NSString *json = [[NSString alloc] initWithData:jsonData
-                                               encoding:NSUTF8StringEncoding];
-        result(json);
+        NSDictionary *dict = @{
+          @"type" : @1,
+          @"message" : @"OPEN_FAILED: File opened incorrectly."
+        };
+        result(dict);
       }
     } else {
-      NSDictionary *dict =
-          @{@"message" : @"the file does not exist", @"type" : @-2};
-      NSData *jsonData =
-          [NSJSONSerialization dataWithJSONObject:dict
-                                          options:NSJSONWritingPrettyPrinted
-                                            error:nil];
-      NSString *json = [[NSString alloc] initWithData:jsonData
-                                             encoding:NSUTF8StringEncoding];
-      result(json);
+      NSDictionary *dict = @{
+        @"type" : @2,
+        @"message" : @"FILE_NOT_FOUND: File does not exist or is not readable"
+      };
+      result(dict);
     }
   } else {
     result(FlutterMethodNotImplemented);
@@ -158,28 +149,14 @@ TopViewControllerForViewController(UIViewController *viewController) {
 
 - (void)documentInteractionControllerDidEndPreview:
     (UIDocumentInteractionController *)controller {
-  NSDictionary *dict = @{@"message" : @"done", @"type" : @0};
-  NSData *jsonData =
-      [NSJSONSerialization dataWithJSONObject:dict
-                                      options:NSJSONWritingPrettyPrinted
-                                        error:nil];
-  NSString *json = [[NSString alloc] initWithData:jsonData
-                                         encoding:NSUTF8StringEncoding];
-
-  _result(json);
+  NSDictionary *dict = @{@"type" : @0, @"message" : @"done"};
+  _result(dict);
 }
 
 - (void)documentInteractionControllerDidDismissOpenInMenu:
     (UIDocumentInteractionController *)controller {
-  NSDictionary *dict = @{@"message" : @"done", @"type" : @0};
-  NSData *jsonData =
-      [NSJSONSerialization dataWithJSONObject:dict
-                                      options:NSJSONWritingPrettyPrinted
-                                        error:nil];
-  NSString *json = [[NSString alloc] initWithData:jsonData
-                                         encoding:NSUTF8StringEncoding];
-
-  _result(json);
+  NSDictionary *dict = @{@"type" : @0, @"message" : @"done"};
+  _result(dict);
 }
 
 - (UIViewController *)documentInteractionControllerViewControllerForPreview:

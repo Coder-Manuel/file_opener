@@ -2,7 +2,6 @@ package manuel.plugin.file_opener
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -25,12 +24,11 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "file_opener")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
-        Log.d("FileOpener", "Plugin attached to engine")
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
+            "getPlatformVersion" -> result.success(mapOf("platform" to "Android", "version" to android.os.Build.VERSION.RELEASE))
             "openFile" -> openFile(call, result)
             else -> result.notImplemented()
         }
@@ -44,7 +42,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
         try {
             val filePath = call.argument<String>("path")
             if (filePath == null) {
-                result.error("INVALID_PATH", "File path cannot be null", call.arguments)
+                result.success(mapOf("type" to 4, "message" to "INVALID_PATH: File path cannot be null"))
                 return
             }
 
@@ -52,7 +50,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
 
             // Check if file exists and is readable
             if (!file.exists() || !file.canRead()) {
-                result.error("FILE_NOT_FOUND", "File does not exist or is not readable", null)
+                result.success(mapOf("type" to 2, "message" to "FILE_NOT_FOUND: File does not exist or is not readable"))
                 return
             }
 
@@ -60,10 +58,7 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
                 FileProvider.getUriForFile(
                     context, "${context.packageName}.fileprovider", file
                 )
-            } catch (e: IllegalArgumentException) {
-                // If the specific file location is not in the configured paths
-                Log.e("FileOpener", "FileProvider error: ${e.message}")
-
+            } catch (_: IllegalArgumentException) {
                 // Copy the file to a known directory
                 val destFile = File(context.cacheDir, file.name)
                 file.copyTo(destFile, overwrite = true)
@@ -71,6 +66,9 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
                 FileProvider.getUriForFile(
                     context, "${context.packageName}.fileprovider", destFile
                 )
+            } catch (e: Exception) {
+                result.success(mapOf("type" to 4, "message" to "URI_NOT_FOUND: ${e.message}"))
+                return
             }
 
             // Get the file MIME type
@@ -84,9 +82,9 @@ class FileOpenerPlugin : FlutterPlugin, MethodCallHandler {
 
             // Start the intent
             context.startActivity(intent)
-            result.success(null)
+            result.success(mapOf("type" to 0, "message" to "Done"))
         } catch (e: Exception) {
-            result.error("ERROR", e.message, null)
+            result.success(mapOf("type" to 4, "message" to "ERROR: ${e.message}"))
         }
     }
 

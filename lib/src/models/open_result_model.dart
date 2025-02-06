@@ -5,19 +5,20 @@ class OpenResult {
 
   OpenResult({this.type = ResultType.done, this.message = "done"});
 
-  OpenResult.fromJson(Map<String, dynamic> json)
-      : message = json['message'],
-        type = _convertJson(json['type']);
+  factory OpenResult.fromJson(Map<String, dynamic> json) => OpenResult(
+        message: json['message'] ?? 'done',
+        type: _convertJson(json['type']),
+      );
 
   static ResultType _convertJson(int? jsonType) {
     switch (jsonType) {
-      case -1:
+      case 1:
         return ResultType.noAppToOpen;
-      case -2:
+      case 2:
         return ResultType.fileNotFound;
-      case -3:
+      case 3:
         return ResultType.permissionDenied;
-      case -4:
+      case 4:
         return ResultType.error;
     }
     return ResultType.done;
