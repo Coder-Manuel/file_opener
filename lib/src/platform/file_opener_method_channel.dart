@@ -21,12 +21,16 @@ class MethodChannelFileOpener extends FileOpenerPlatform {
     String? type,
     String? uti,
   }) async {
-    final result =
-        await methodChannel.invokeMethod<Map<String, dynamic>>('openFile', {
+    final data = await methodChannel.invokeMethod('openFile', {
       'path': path,
-      "type": type,
-      "uti": uti,
+      'type': type,
+      'uti': uti,
     });
+
+    // Convert to Map<String, dynamic>
+    final result = (data as Map?)?.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
 
     return OpenResult.fromJson(result ?? {});
   }
